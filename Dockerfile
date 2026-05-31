@@ -37,8 +37,15 @@ COPY --chown=node:node tsconfig.base.json tsconfig.base.json
 COPY --chown=node:node src/ src/
 COPY --chown=node:node ./prisma ./prisma
 
+ARG DATABASE_URL
+ARG DIRECT_DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+ENV DIRECT_DATABASE_URL=${DIRECT_DATABASE_URL}
+
 RUN yarn install --immutable
-RUN yarn dlx prisma generate
+# Use the locally installed Prisma binary to generate the client (avoids dlx fetching a different Prisma version)
+# Note: `DATABASE_URL` must be provided at build time via --build-arg or Prisma generate will fail.
+RUN npx prisma generate
 RUN yarn run build
 
 # ================ #
